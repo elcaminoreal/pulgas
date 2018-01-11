@@ -14,7 +14,7 @@ setuptools.setup(
     author_email="zadka.moshe@gmail.com",
     packages=setuptools.find_packages(where='src'),
     package_dir={"": "src"},
-    install_requires=['attrs', 'gather'],
+    install_requires=['attrs', 'gather', 'toml', 'schema'],
     entry_points=dict(
         gather=["gather=pulgas"],
     )
