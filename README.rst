@@ -1,0 +1,4 @@
+Pulgas
+======
+
+Pluggable configuration
