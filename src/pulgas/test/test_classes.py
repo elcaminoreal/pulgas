@@ -20,17 +20,17 @@ class Pipfile(object):
     @pulgas.config()
     class Requires(object):
 
-        os_name = pulgas.attrib(schema=schema.Optional(str))
-        sys_platform = pulgas.attrib(schema=schema.Optional(str))
-        platform_machine = pulgas.attrib(schema=schema.Optional(str))
-        platform_python_implementation = pulgas.attrib(schema=schema.Optional(str))
-        platform_release = pulgas.attrib(schema=schema.Optional(str))
-        platform_system = pulgas.attrib(schema=schema.Optional(str))
-        platform_version = pulgas.attrib(schema=schema.Optional(str))
-        python_version = pulgas.attrib(schema=schema.Optional(str))
-        python_full_version = pulgas.attrib(schema=schema.Optional(str))
-        implementation_name = pulgas.attrib(schema=schema.Optional(str))
-        implementation_version = pulgas.attrib(schema=schema.Optional(str))
+        os_name = pulgas.attrib(schema=str, default='')
+        sys_platform = pulgas.attrib(schema=str, default='')
+        platform_machine = pulgas.attrib(schema=str, default='')
+        platform_python_implementation = pulgas.attrib(schema=str, default='')
+        platform_release = pulgas.attrib(schema=str, default='')
+        platform_system = pulgas.attrib(schema=str, default='')
+        platform_version = pulgas.attrib(schema=str, default='')
+        python_version = pulgas.attrib(schema=str, default='')
+        python_full_version = pulgas.attrib(schema=str, default='')
+        implementation_name = pulgas.attrib(schema=str, default='')
+        implementation_version = pulgas.attrib(schema=str, default='')
 
     @pulgas.config()
     class Packages(object):
@@ -41,23 +41,39 @@ class Pipfile(object):
         def __pulgas_from_config__(cls, config):
             my_schema = schema.Schema({str:
                                        schema.Or(str, # Should be version str
-                                                 pulgas.Use(PackageSpec))})
+                                                 pulgas.Use(Pipfile.PackageSpec))})
             validated_config = my_schema.validate(config)
-            packages = {name: PackageSpec(version=value)
+            packages = {name: Pipfile.PackageSpec(version=value)
                               if isinstance(value, str)
-                              else value}
+                              else value
+                              for name, value in validated_config.items()}
             return cls(packages=packages)
 
+    @pulgas.config()
+    class PackageSpec(object):
+
+        extras = pulgas.attrib(schema=[str], default=attr.Factory(list))
+        git = pulgas.attrib(schema=str, default=None)
+        ref = pulgas.attrib(schema=str, default=None)
+        editable = pulgas.attrib(schema=bool, default=False)
+        file = pulgas.attrib(schema=str, default=None)
+        path = pulgas.attrib(schema=str, default=None)
+        version = pulgas.attrib(schema=str, default=None)
+        index = pulgas.attrib(schema=str, default=None)
+        os_name = pulgas.attrib(schema=str, default=None)
+        markers = pulgas.attrib(schema=str, default=None)
+
+
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
-                           default=Source(url='https://pypi.python.org/simple',
+                           default=[Source(url='https://pypi.python.org/simple',
                                           verify_ssl=True,
-                                          name='pypi'))
+                                          name='pypi')])
 
-    requires = pulgas.attrib(schema=schema.Optional(pulgas.Use(Requires)))
+    requires = pulgas.attrib(pulgas=Requires)
 
-    packages = pulgas.attrib(schema=schema.Optional(pulgas.Use(Packages)))
+    packages = pulgas.attrib(pulgas=Packages)
 
-    dev_packages = pulgas.attrib(schema=schema.Optional(pulgas.Use(Packages)))
+    dev_packages = pulgas.attrib(pulgas=Packages, real_name='dev-packages')
 
 class ClassTest(unittest.TestCase):
 
