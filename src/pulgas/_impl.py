@@ -12,6 +12,19 @@ PULGAS_SCHEMA = _Marker("PULGAS_SCHEMA")
 def _get_schema_key(attribute):
     return attribute.metadata[PULGAS_SCHEMA].get_schema_key(attribute.name)
 
+@attr.s(frozen=True)
+class _Nothing(object):
+
+    has_value = False
+
+@attr.s(frozen=True)
+class _Something(object):
+
+    has_value = True
+
+    value = attr.ib()
+
+
 @classmethod
 def _validate(cls, thing):
     from_config = getattr(cls, '__pulgas_from_config__', _MISSING)
@@ -53,12 +66,17 @@ class PulgasSchema(object):
 def Use(klass):
     return schemalib.Use(klass.validate)
 
-def attrib(schema=None, default=attr.NOTHING, pulgas=None, real_name=None):
+def attrib(schema=None, optional=False, default=attr.NOTHING,
+           pulgas=None, real_name=None):
+    if optional:
+        default = _Nothing()
     if pulgas is not None:
         schema = Use(pulgas)
-        default = pulgas()
     if schema is None:
         return attr.attrib(default=default)
+    if default == _Nothing():
+        underlying_schema = schemalib.Schema(schema)
+        schema = schemalib.Use(lambda x: _Something(underlying_schema.validate(x)))
     optional = (default != attr.NOTHING)
     pulgas_schema = PulgasSchema(schema=schema, optional=optional,
                                  real_name=real_name)

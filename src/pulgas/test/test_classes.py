@@ -53,15 +53,15 @@ class Pipfile(object):
     class PackageSpec(object):
 
         extras = pulgas.attrib(schema=[str], default=attr.Factory(list))
-        git = pulgas.attrib(schema=str, default=None)
-        ref = pulgas.attrib(schema=str, default=None)
+        git = pulgas.attrib(schema=str, optional=True)
+        ref = pulgas.attrib(schema=str, optional=True)
         editable = pulgas.attrib(schema=bool, default=False)
-        file = pulgas.attrib(schema=str, default=None)
-        path = pulgas.attrib(schema=str, default=None)
-        version = pulgas.attrib(schema=str, default=None)
-        index = pulgas.attrib(schema=str, default=None)
-        os_name = pulgas.attrib(schema=str, default=None)
-        markers = pulgas.attrib(schema=str, default=None)
+        file = pulgas.attrib(schema=str, optional=True)
+        path = pulgas.attrib(schema=str, optional=True)
+        version = pulgas.attrib(schema=str, optional=True)
+        index = pulgas.attrib(schema=str, optional=True)
+        os_name = pulgas.attrib(schema=str, optional=True)
+        markers = pulgas.attrib(schema=str, optional=True)
 
 
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
@@ -69,11 +69,11 @@ class Pipfile(object):
                                           verify_ssl=True,
                                           name='pypi')])
 
-    requires = pulgas.attrib(pulgas=Requires)
+    requires = pulgas.attrib(pulgas=Requires, optional=True)
 
-    packages = pulgas.attrib(pulgas=Packages)
+    packages = pulgas.attrib(pulgas=Packages, optional=True)
 
-    dev_packages = pulgas.attrib(pulgas=Packages, real_name='dev-packages')
+    dev_packages = pulgas.attrib(pulgas=Packages, real_name='dev-packages', optional=True)
 
 class ClassTest(unittest.TestCase):
 
