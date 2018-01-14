@@ -20,16 +20,16 @@ class Pipfile(object):
     @pulgas.config()
     class Requires(object):
 
-        os_name = pulgas.attrib(schema=str, optional=True)
-        sys_platform = pulgas.attrib(schema=str, optional=True)
-        platform_machine = pulgas.attrib(schema=str, optional=True)
-        platform_python_implementation = pulgas.attrib(schema=str, optional=True)
-        platform_release = pulgas.attrib(schema=str, optional=True)
-        platform_system = pulgas.attrib(schema=str, optional=True)
-        platform_version = pulgas.attrib(schema=str, optional=True)
-        python_version = pulgas.attrib(schema=str, optional=True)
-        python_full_version = pulgas.attrib(schema=str, optional=True)
-        implementation_name = pulgas.attrib(schema=str, optional=True)
+        os_name = sys_platform = platform_machine = \
+        platform_python_implementation = sys_platform = \
+        platform_machine = \
+        platform_python_implementation = \
+        platform_release = \
+        platform_system = \
+        platform_version = \
+        python_version = \
+        python_full_version = \
+        implementation_name = \
         implementation_version = pulgas.attrib(schema=str, optional=True)
 
     @pulgas.config()
@@ -53,15 +53,10 @@ class Pipfile(object):
     class PackageSpec(object):
 
         extras = pulgas.attrib(schema=[str], default=attr.Factory(list))
-        git = pulgas.attrib(schema=str, optional=True)
-        ref = pulgas.attrib(schema=str, optional=True)
-        editable = pulgas.attrib(schema=bool, default=False)
-        file = pulgas.attrib(schema=str, optional=True)
-        path = pulgas.attrib(schema=str, optional=True)
-        version = pulgas.attrib(schema=str, default='*')
-        index = pulgas.attrib(schema=str, optional=True)
-        os_name = pulgas.attrib(schema=str, optional=True)
+        git = ref = file = path = index = os_name = \
         markers = pulgas.attrib(schema=str, optional=True)
+        editable = pulgas.attrib(schema=bool, default=False)
+        version = pulgas.attrib(schema=str, default='*')
 
 
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
