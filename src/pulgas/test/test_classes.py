@@ -20,8 +20,11 @@ class Pipfile(object):
     @pulgas.config()
     class Requires(object):
 
-        os_name = sys_platform = platform_machine = \
-        platform_python_implementation = sys_platform = \
+        os_name = \
+        sys_platform = \
+        platform_machine = \
+        platform_python_implementation = \
+        sys_platform = \
         platform_machine = \
         platform_python_implementation = \
         platform_release = \
@@ -43,9 +46,12 @@ class Pipfile(object):
                              pulgas.Use(Pipfile.PackageSpec))
             my_schema = schema.Schema({str: spec})
             validated_config = my_schema.validate(config)
-            packages = {name: Pipfile.PackageSpec(version=value)
-                              if isinstance(value, str)
-                              else value
+
+            def to_spec(value):
+                if isinstance(value, str):
+                    return Pipfile.PackageSpec(version=value)
+                return value
+            packages = {name: to_spec(value)
                         for name, value in validated_config.items()}
             return cls(packages=packages)
 
