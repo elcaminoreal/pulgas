@@ -84,6 +84,14 @@ class PyProject(object):
 
     tool = pulgas.attrib(schema=object, default=attr.Factory(dict))
 
+def _parse_inline_doc_toml(content):
+    lines = content.splitlines()[1:]
+    initial_whitespace = len(lines[0]) - len(lines[0].lstrip())
+    stripped = [line[initial_whitespace:] for line in lines]
+    real_content = '\n'.join(stripped) + '\n'
+    parsed = toml.loads(real_content)
+    return parsed
+
 class ClassTest(unittest.TestCase):
 
     def test_simple_pipfile(self):
@@ -108,12 +116,7 @@ class ClassTest(unittest.TestCase):
         nose = '*'
         unittest2 = {version = ">=1.0,<3.0", markers="python_version < '2.7.9' or (python_version >= '3.0' and python_version < '3.4')"}
         """
-        lines = content.splitlines()[1:]
-        initial_whitespace = len(lines[0]) - len(lines[0].lstrip())
-        stripped = [line[initial_whitespace:] for line in lines]
-        real_content = '\n'.join(stripped) + '\n'
-        parsed = toml.loads(real_content)
-        res = Pipfile.validate(parsed)
+        res = Pipfile.validate(_parse_inline_doc_toml(content))
         dct = attr.asdict(res, recurse=False)
         source = dct.pop('source')
         first_one = source.pop(0)
@@ -147,8 +150,7 @@ class ClassTest(unittest.TestCase):
         self.assertTrue(packages.has_value)
         self.assertIsInstance(packages.value, Pipfile.Packages)
         packages = packages.value.packages
-        requests = packages.pop('requests')
-        self.assertEquals(requests.version, '*')
+        self.assertEquals(packages.pop('requests').version, '*')
         self.assertEquals(dct, {})
 
     def test_simple_pyproject(self):
@@ -163,11 +165,7 @@ class ClassTest(unittest.TestCase):
         author-email = "robin@camelot.uk"
         home-page = "https://github.com/sirrobin/foobar"
         """
-        lines = content.splitlines()[1:]
-        initial_whitespace = len(lines[0]) - len(lines[0].lstrip())
-        stripped = [line[initial_whitespace:] for line in lines]
-        real_content = '\n'.join(stripped) + '\n'
-        parsed = toml.loads(real_content)
+        parsed = _parse_inline_doc_toml(content)
         res = PyProject.validate(parsed)
         things = attr.asdict(res, recurse=False)
         # We ignore things under "tool"
