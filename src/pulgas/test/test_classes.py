@@ -39,9 +39,9 @@ class Pipfile(object):
 
         @classmethod
         def __pulgas_from_config__(cls, config):
-            my_schema = schema.Schema({str:
-                                       schema.Or(str, # Should be version str
-                                                 pulgas.Use(Pipfile.PackageSpec))})
+            spec = schema.Or(str, # Should be version str
+                             pulgas.Use(Pipfile.PackageSpec))
+            my_schema = schema.Schema({str: spec})
             validated_config = my_schema.validate(config)
             packages = {name: Pipfile.PackageSpec(version=value)
                               if isinstance(value, str)
@@ -53,14 +53,15 @@ class Pipfile(object):
     class PackageSpec(object):
 
         extras = pulgas.attrib(schema=[str], default=attr.Factory(list))
-        git = ref = file = path = index = os_name = \
-        markers = pulgas.attrib(schema=str, optional=True)
+        _optional_str = pulgas.attrib(schema=str, optional=True)
+        git = ref = file = path = index = os_name = markers = _optional_str
+        del _optional_str
         editable = pulgas.attrib(schema=bool, default=False)
         version = pulgas.attrib(schema=str, default='*')
 
-
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
-                           default=[Source(url='https://pypi.python.org/simple',
+                           default=[Source(url=('https://pypi.python.org/'
+                                                'simple'),
                                            verify_ssl=True,
                                            name='pypi')])
 
@@ -68,7 +69,10 @@ class Pipfile(object):
 
     packages = pulgas.attrib(pulgas=Packages, optional=True)
 
-    dev_packages = pulgas.attrib(pulgas=Packages, real_name='dev-packages', optional=True)
+    dev_packages = pulgas.attrib(pulgas=Packages,
+                                 real_name='dev-packages',
+                                 optional=True)
+
 
 @pulgas.config()
 class PyProject(object):
@@ -84,6 +88,7 @@ class PyProject(object):
 
     tool = pulgas.attrib(schema=object, default=attr.Factory(dict))
 
+
 def _parse_inline_doc_toml(content):
     lines = content.splitlines()[1:]
     initial_whitespace = len(lines[0]) - len(lines[0].lstrip())
@@ -91,6 +96,7 @@ def _parse_inline_doc_toml(content):
     real_content = '\n'.join(stripped) + '\n'
     parsed = toml.loads(real_content)
     return parsed
+
 
 class ClassTest(unittest.TestCase):
 
