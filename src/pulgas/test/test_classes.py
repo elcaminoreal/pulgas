@@ -6,6 +6,7 @@ import toml
 
 import pulgas
 
+
 @pulgas.config()
 class Pipfile(object):
 
@@ -16,24 +17,18 @@ class Pipfile(object):
         verify_ssl = pulgas.attrib(schema=schema.Optional(bool))
         name = pulgas.attrib(schema=str)
 
-    ## Copied from PEP 508, removed "extra"
+    # Copied from PEP 508, removed "extra"
     @pulgas.config()
     class Requires(object):
 
-        os_name = \
-        sys_platform = \
-        platform_machine = \
-        platform_python_implementation = \
-        sys_platform = \
-        platform_machine = \
-        platform_python_implementation = \
-        platform_release = \
-        platform_system = \
-        platform_version = \
-        python_version = \
-        python_full_version = \
-        implementation_name = \
-        implementation_version = pulgas.attrib(schema=str, optional=True)
+        _optional_str = pulgas.attrib(schema=str, optional=True)
+        os_name = sys_platform = platform_machine = _optional_str
+        platform_python_implementation = sys_platform = _optional_str
+        platform_machine = platform_python_implementation = _optional_str
+        platform_release = platform_system = platform_version = _optional_str
+        python_version = python_full_version = _optional_str
+        implementation_name = implementation_version = _optional_str
+        del _optional_str
 
     @pulgas.config()
     class Packages(object):
@@ -42,7 +37,7 @@ class Pipfile(object):
 
         @classmethod
         def __pulgas_from_config__(cls, config):
-            spec = schema.Or(str, # Should be version str
+            spec = schema.Or(str,  # Should be version str
                              pulgas.Use(Pipfile.PackageSpec))
             my_schema = schema.Schema({str: spec})
             validated_config = my_schema.validate(config)
