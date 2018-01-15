@@ -58,13 +58,14 @@ class PulgasSchema(object):
     def get_schema_key(self, name):
         if self.real_name is not None:
             name = self.real_name
-        if self.optional:
-            return schemalib.Optional(name)
-        else:
+        if not self.optional:
             return name
+        return schemalib.Optional(name)
 
+# pylint: disable=invalid-name
 def Use(klass):
     return schemalib.Use(klass.validate)
+# pylint: enable=invalid-name
 
 def attrib(schema=None, optional=False, default=attr.NOTHING,
            pulgas=None, real_name=None):
@@ -81,4 +82,4 @@ def attrib(schema=None, optional=False, default=attr.NOTHING,
     pulgas_schema = PulgasSchema(schema=schema, optional=optional,
                                  real_name=real_name)
     return attr.attrib(default=default,
-                        metadata={PULGAS_SCHEMA: pulgas_schema})
+                       metadata={PULGAS_SCHEMA: pulgas_schema})

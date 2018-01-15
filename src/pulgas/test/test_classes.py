@@ -46,7 +46,7 @@ class Pipfile(object):
             packages = {name: Pipfile.PackageSpec(version=value)
                               if isinstance(value, str)
                               else value
-                              for name, value in validated_config.items()}
+                        for name, value in validated_config.items()}
             return cls(packages=packages)
 
     @pulgas.config()
@@ -61,8 +61,8 @@ class Pipfile(object):
 
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
                            default=[Source(url='https://pypi.python.org/simple',
-                                          verify_ssl=True,
-                                          name='pypi')])
+                                           verify_ssl=True,
+                                           name='pypi')])
 
     requires = pulgas.attrib(pulgas=Requires, optional=True)
 
@@ -114,7 +114,7 @@ class ClassTest(unittest.TestCase):
 
         [dev-packages]
         nose = '*'
-        unittest2 = {version = ">=1.0,<3.0", markers="python_version < '2.7.9' or (python_version >= '3.0' and python_version < '3.4')"}
+        unittest2 = {version="<3.0", markers="python_version<'2.7.9'"}
         """
         res = Pipfile.validate(_parse_inline_doc_toml(content))
         dct = attr.asdict(res, recurse=False)
