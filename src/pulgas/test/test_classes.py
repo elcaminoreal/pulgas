@@ -70,6 +70,20 @@ class Pipfile(object):
 
     dev_packages = pulgas.attrib(pulgas=Packages, real_name='dev-packages', optional=True)
 
+@pulgas.config()
+class PyProject(object):
+
+    @pulgas.config()
+    class BuildSystem(object):
+
+        requires = pulgas.attrib(schema=[str], default=attr.Factory(list))
+        build_backend = pulgas.attrib(schema=str, real_name='build-backend',
+                                      optional=True)
+
+    build_system = pulgas.attrib(pulgas=BuildSystem, real_name='build-system')
+
+    tool = pulgas.attrib(schema=object, default=attr.Factory(dict))
+
 class ClassTest(unittest.TestCase):
 
     def test_simple_pipfile(self):
@@ -136,3 +150,35 @@ class ClassTest(unittest.TestCase):
         requests = packages.pop('requests')
         self.assertEquals(requests.version, '*')
         self.assertEquals(dct, {})
+
+    def test_simple_pyproject(self):
+        content = """
+        [build-system]
+        requires = ["flit"]
+        build-backend = "flit.buildapi"
+
+        [tool.flit.metadata]
+        module = "foobar"
+        author = "Sir Robin"
+        author-email = "robin@camelot.uk"
+        home-page = "https://github.com/sirrobin/foobar"
+        """
+        lines = content.splitlines()[1:]
+        initial_whitespace = len(lines[0]) - len(lines[0].lstrip())
+        stripped = [line[initial_whitespace:] for line in lines]
+        real_content = '\n'.join(stripped) + '\n'
+        parsed = toml.loads(real_content)
+        res = PyProject.validate(parsed)
+        things = attr.asdict(res, recurse=False)
+        # We ignore things under "tool"
+        things.pop('tool')
+        build_system = things.pop('build_system')
+        self.assertEquals(things, {})
+        self.assertIsInstance(build_system, PyProject.BuildSystem)
+        things = attr.asdict(build_system, recurse=False)
+        self.assertEquals(things.pop('requires'), ['flit'])
+        build_backend = things.pop('build_backend')
+        self.assertEquals(things, {})
+        self.assertTrue(build_backend.has_value)
+        build_backend_value = build_backend.value
+        self.assertEquals(build_backend_value, 'flit.buildapi')
