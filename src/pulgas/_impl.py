@@ -1,3 +1,6 @@
+"""
+Implementation code for the pulgas DSL
+"""
 import attr
 import schema as schemalib
 
@@ -49,6 +52,9 @@ def _validate(cls, thing):
 
 
 def config():
+    """
+    Mark a class as a pulgas DSL configuration specification
+    """
     def _decorate(klass):
         klass = attr.attrs(klass)
         klass.validate = _validate
@@ -57,13 +63,23 @@ def config():
 
 
 @attr.s(frozen=True)
-class PulgasSchema(object):
+class _PulgasSchema(object):
 
     schema = attr.ib()
     optional = attr.ib()
     real_name = attr.ib()
 
     def get_schema_key(self, name):
+        """
+        Calculate the key in a dictionary schema.
+
+        Args:
+            name (str): the field name
+
+        Returns:
+            Something suitable as a key in a dictionary passed to
+            :code:`Schema`. Accounts for optionality and for name-override.
+        """
         if self.real_name is not None:
             name = self.real_name
         if not self.optional:
@@ -73,12 +89,33 @@ class PulgasSchema(object):
 
 # pylint: disable=invalid-name
 def Use(klass):
+    """
+    Validate using a pulgas configuration specifier.
+    """
     return schemalib.Use(klass.validate)
 # pylint: enable=invalid-name
 
 
 def attrib(schema=None, optional=False, default=attr.NOTHING,
            pulgas=None, real_name=None):
+    """
+    Configuration field.
+
+    Args:
+        schema (a type or callable): the specification for this node
+        optional (bool): whether this is optional
+        default: default value. Note that optional attributes cannot
+            have defaults
+        pulgas (a pulgas class): specification for node format
+            (in this case schema and default arguments ae ignored)
+        real_name (str): instead of using the attribute's name as the
+            name to locate this name by, use an explcit one.
+            Useful when configuration field name is not a valid Python
+            name (usually because of hyphens).
+    Returns:
+        A marker used by the :code:`config` class decorator to know
+        this attribute corresponds to a configuration field.
+    """
     if optional:
         default = _Nothing()
     if pulgas is not None:
@@ -88,11 +125,11 @@ def attrib(schema=None, optional=False, default=attr.NOTHING,
     if default == _Nothing():
         underlying_schema = schemalib.Schema(schema)
 
-        def to_something(value):
+        def _to_something(value):
             return _Something(underlying_schema.validate(value))
-        schema = schemalib.Use(to_something)
+        schema = schemalib.Use(_to_something)
     optional = (default != attr.NOTHING)
-    pulgas_schema = PulgasSchema(schema=schema, optional=optional,
-                                 real_name=real_name)
+    pulgas_schema = _PulgasSchema(schema=schema, optional=optional,
+                                  real_name=real_name)
     return attr.attrib(default=default,
                        metadata={PULGAS_SCHEMA: pulgas_schema})

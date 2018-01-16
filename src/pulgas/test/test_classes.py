@@ -1,3 +1,7 @@
+"""
+Tests for the pulgas configuration specification DSL.
+"""
+
 import unittest
 
 import attr
@@ -6,7 +10,16 @@ import toml
 
 import pulgas
 
+# The following configuration formats are included here
+# to showcase the API for specifying configuration formats --
+# their semantics are irrelevant.
+#
+# For real uses, the master definition should be in the format here,
+# and in that case, docstrings can serve as a way of documenting
+# the format's semantics.
 
+
+# pylint: disable=missing-docstring
 @pulgas.config()
 class Pipfile(object):
 
@@ -88,6 +101,7 @@ class PyProject(object):
     build_system = pulgas.attrib(pulgas=BuildSystem, real_name='build-system')
 
     tool = pulgas.attrib(schema=object, default=attr.Factory(dict))
+# pylint: enable=missing-docstring
 
 
 def _parse_inline_doc_toml(content):
@@ -101,7 +115,14 @@ def _parse_inline_doc_toml(content):
 
 class ClassTest(unittest.TestCase):
 
+    """
+    Test the pulgas specification classes.
+    """
+
     def test_simple_pipfile(self):
+        """
+        Parsing a Pipfile validates and converts to Pipfile instance.
+        """
         content = """
         [[source]]
         url = 'https://pypi.python.org/simple'
@@ -161,6 +182,9 @@ class ClassTest(unittest.TestCase):
         self.assertEquals(dct, {})
 
     def test_simple_pyproject(self):
+        """
+        Parsing a pyproject.toml validates and converts to PyProject instance
+        """
         content = """
         [build-system]
         requires = ["flit"]
