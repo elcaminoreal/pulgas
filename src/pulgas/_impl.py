@@ -133,3 +133,10 @@ def attrib(schema=None, optional=False, default=attr.NOTHING,
                                   real_name=real_name)
     return attr.attrib(default=default,
                        metadata={PULGAS_SCHEMA: pulgas_schema})
+
+
+def load(configuration, data):
+    schema = {schemalib.Optional(name): Use(value)
+              for name, value in configuration.collect().items()}
+    schema[str] = object
+    return schemalib.Schema(schema).validate(data)

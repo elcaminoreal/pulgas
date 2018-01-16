@@ -5,6 +5,7 @@ Tests for the pulgas configuration specification DSL.
 import unittest
 
 import attr
+import gather
 import schema
 import six
 import toml
@@ -117,11 +118,54 @@ def _parse_inline_doc_toml(content):
     return parsed
 
 
-class ClassTest(unittest.TestCase):
+CONFIGURATION = gather.Collector()
 
+
+@CONFIGURATION.register(name='thing')
+@pulgas.config()
+class Thing(object):
+    """
+    It's a thing!
+    """
+
+    part_1 = pulgas.attrib(schema=six.text_type)
+    part_2 = pulgas.attrib(schema=int)
+
+@CONFIGURATION.register(name='another-thing')
+@pulgas.config()
+class AnotherThing(object):
+    """
+    It's another thing!
+    """
+
+    part_1 = pulgas.attrib(schema=float)
+    part_2 = pulgas.attrib(schema=float)
+
+
+class ClassTest(unittest.TestCase):
     """
     Test the pulgas specification classes.
     """
+
+    def test_registration(self):
+        content = """
+        [thing]
+        part_1 = "a part"
+        part_2 = 5
+
+        [another-thing]
+        part_1 = 1.3
+        part_2 = 2.7
+
+        [unknown-bit]
+        stuff = "woo"
+        """
+        res = pulgas.load(CONFIGURATION, _parse_inline_doc_toml(content))
+        self.assertEquals(res.pop('thing'), Thing(part_1="a part", part_2=5))
+        self.assertEquals(res.pop('another-thing'),
+                          AnotherThing(part_1=1.3, part_2=2.7))
+        del res['unknown-bit']
+        self.assertEquals(res, {})
 
     def test_simple_pipfile(self):
         """
