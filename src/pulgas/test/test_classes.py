@@ -6,6 +6,7 @@ import unittest
 
 import attr
 import schema
+import six
 import toml
 
 import pulgas
@@ -26,15 +27,15 @@ class Pipfile(object):
     @pulgas.config()
     class Source(object):
 
-        url = pulgas.attrib(schema=str)
+        url = pulgas.attrib(schema=six.text_type)
         verify_ssl = pulgas.attrib(schema=schema.Optional(bool))
-        name = pulgas.attrib(schema=str)
+        name = pulgas.attrib(schema=six.text_type)
 
     # Copied from PEP 508, removed "extra"
     @pulgas.config()
     class Requires(object):
 
-        _optional_str = pulgas.attrib(schema=str, optional=True)
+        _optional_str = pulgas.attrib(schema=six.text_type, optional=True)
         os_name = sys_platform = platform_machine = _optional_str
         platform_python_implementation = sys_platform = _optional_str
         platform_machine = platform_python_implementation = _optional_str
@@ -50,13 +51,13 @@ class Pipfile(object):
 
         @classmethod
         def __pulgas_from_config__(cls, config):
-            spec = schema.Or(str,  # Should be version str
+            spec = schema.Or(six.text_type,  # Should be version str
                              pulgas.Use(Pipfile.PackageSpec))
-            my_schema = schema.Schema({str: spec})
+            my_schema = schema.Schema({six.text_type: spec})
             validated_config = my_schema.validate(config)
 
             def to_spec(value):
-                if isinstance(value, str):
+                if isinstance(value, six.text_type):
                     return Pipfile.PackageSpec(version=value)
                 return value
             packages = {name: to_spec(value)
@@ -66,12 +67,13 @@ class Pipfile(object):
     @pulgas.config()
     class PackageSpec(object):
 
-        extras = pulgas.attrib(schema=[str], default=attr.Factory(list))
-        _optional_str = pulgas.attrib(schema=str, optional=True)
+        extras = pulgas.attrib(schema=[six.text_type],
+                               default=attr.Factory(list))
+        _optional_str = pulgas.attrib(schema=six.text_type, optional=True)
         git = ref = file = path = index = os_name = markers = _optional_str
         del _optional_str
         editable = pulgas.attrib(schema=bool, default=False)
-        version = pulgas.attrib(schema=str, default='*')
+        version = pulgas.attrib(schema=six.text_type, default='*')
 
     source = pulgas.attrib(schema=[pulgas.Use(Source)],
                            default=[Source(url=('https://pypi.python.org/'
@@ -94,8 +96,10 @@ class PyProject(object):
     @pulgas.config()
     class BuildSystem(object):
 
-        requires = pulgas.attrib(schema=[str], default=attr.Factory(list))
-        build_backend = pulgas.attrib(schema=str, real_name='build-backend',
+        requires = pulgas.attrib(schema=[six.text_type],
+                                 default=attr.Factory(list))
+        build_backend = pulgas.attrib(schema=six.text_type,
+                                      real_name='build-backend',
                                       optional=True)
 
     build_system = pulgas.attrib(pulgas=BuildSystem, real_name='build-system')
