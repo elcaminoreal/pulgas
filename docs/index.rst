@@ -8,4 +8,4 @@ Pulgas
    :maxdepth: 2
 
 .. automodule:: pulgas
-   :members: config, attrib, Use
+   :members: config, attrib, Use, load

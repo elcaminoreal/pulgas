@@ -131,6 +131,7 @@ class Thing(object):
     part_1 = pulgas.attrib(schema=six.text_type)
     part_2 = pulgas.attrib(schema=int)
 
+
 @CONFIGURATION.register(name='another-thing')
 @pulgas.config()
 class AnotherThing(object):
@@ -148,6 +149,9 @@ class ClassTest(unittest.TestCase):
     """
 
     def test_registration(self):
+        """
+        Loading with a gather.Collector returns matching dictionary.
+        """
         content = """
         [thing]
         part_1 = "a part"

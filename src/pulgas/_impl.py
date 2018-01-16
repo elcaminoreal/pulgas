@@ -136,6 +136,20 @@ def attrib(schema=None, optional=False, default=attr.NOTHING,
 
 
 def load(configuration, data):
+    """
+    Load validated configuration
+
+    Args:
+        configuration (gather.Collector): a collector of configurations
+        data (dict): data read from a configuration file
+
+    Returns:
+        dictionary mapping configuration names to validated configuration
+        objects
+
+    Raises:
+        schema.SchemaError: invalid configuration data
+    """
     schema = {schemalib.Optional(name): Use(value)
               for name, value in configuration.collect().items()}
     schema[str] = object
