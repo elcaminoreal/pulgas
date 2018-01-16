@@ -3,6 +3,7 @@ Implementation code for the pulgas DSL
 """
 import attr
 import schema as schemalib
+import six
 
 
 @attr.s(frozen=True)
@@ -152,5 +153,5 @@ def load(configuration, data):
     """
     schema = {schemalib.Optional(name): Use(value)
               for name, value in configuration.collect().items()}
-    schema[str] = object
+    schema[six.text_type] = object
     return schemalib.Schema(schema).validate(data)
