@@ -34,9 +34,27 @@ The plugin configuration validator is a class:
     @pulgas.config()
     class SomeClass(object):
 
-        configuration_field = pulgas.
+        required_field = pulgas.required(schema=int)
+        field_with_default = pulgas.required(schema=float, default=0.0)
+        optional_field = pulgas.optional(schema=bool)
 
+If further structure is needed,
+inner classes can be defined:
 
+.. code::
+
+    @CONFIGURATION.register(name="<NAME>")
+    @pulgas.config()
+    class SomeClass(object):
+
+        @pulgas.config()
+        class FirstPart(object):
+
+            field_one = pulgas.required(schema=int)
+
+        top_level = pulgas.required(schema=int)
+        inner_config = pulgas.required(schema=pulgas.Use(FirstPart)
+    
 
 API
 ---
