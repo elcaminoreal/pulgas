@@ -96,18 +96,58 @@ def Use(klass):
     return schemalib.Use(klass.validate)
 # pylint: enable=invalid-name
 
+
 def required(schema, real_name=None):
+    """
+    A required configuration field.
+
+    Args:
+        schema (a type or callable): the specification for this field.
+        real_name (str): the name of the configuration field.
+            It is optional -- the default is the name of the attribute.
+            This is useful especially in cases where the field's name
+            is not a valid identifier -- for example, if it contains dashes.
+    """
     pulgas_schema = _PulgasSchema(schema=schema, optional=False,
                                   real_name=real_name)
     return attr.attrib(metadata={PULGAS_SCHEMA: pulgas_schema})
 
+
 def override(schema, default, real_name=None):
+    """
+    A configuration field that overrides a default value.
+
+    Args:
+        schema (a type or callable): the specification for this field.
+        default: the default value if the field is not in the configuration.
+        real_name (str): the name of the configuration field.
+            It is optional -- the default is the name of the attribute.
+            This is useful especially in cases where the field's name
+            is not a valid identifier -- for example, if it contains dashes.
+    """
     pulgas_schema = _PulgasSchema(schema=schema, optional=True,
                                   real_name=real_name)
     return attr.attrib(default=default,
                        metadata={PULGAS_SCHEMA: pulgas_schema})
 
+
 def optional(schema, real_name=None):
+    """
+    An optional configuration field.
+
+    In order to access it, first check for its :code:`.has_value`.
+    If this is false, this field was absent from the configuration.
+    If this is true, the field's value will be in the :code:`.value`
+    attribute.
+
+    Args:
+        schema (a type or callable): the specification for this field.
+        default: the default value if the field is not in the configuration.
+        real_name (str): the name of the configuration field.
+            It is optional -- the default is the name of the attribute.
+            This is useful especially in cases where the field's name
+            is not a valid identifier -- for example, if it contains dashes.
+    """
     underlying_schema = schemalib.Schema(schema)
 
     def _to_something(value):
@@ -118,30 +158,24 @@ def optional(schema, real_name=None):
     return attr.attrib(default=_Nothing(),
                        metadata={PULGAS_SCHEMA: pulgas_schema})
 
+
 def custom(default=attr.NOTHING):
-    return attr.attrib(default=default)
-
-
-def attrib(schema=None, optional=False, default=attr.NOTHING,
-           pulgas=None, real_name=None):
     """
-    Configuration field.
+    Custom configuration field.
+
+    This defines an attribute as a custom configuration field.
+    If any of the attributes are :code:`custom`,
+    the class must define a class method called
+    :code:`__pulgas_from_config__` which takes a dictionary
+    and returns a member of the class.
+
+    This allows fine-tuned control over the interpretation
+    of the configuration.
 
     Args:
-        schema (a type or callable): the specification for this node
-        optional (bool): whether this is optional
-        default: default value. Note that optional attributes cannot
-            have defaults
-        pulgas (a pulgas class): specification for node format
-            (in this case schema and default arguments ae ignored)
-        real_name (str): instead of using the attribute's name as the
-            name to locate this name by, use an explcit one.
-            Useful when configuration field name is not a valid Python
-            name (usually because of hyphens).
-    Returns:
-        A marker used by the :code:`config` class decorator to know
-        this attribute corresponds to a configuration field.
+        default (optional, any type): a default value
     """
+    return attr.attrib(default=default)
 
 
 def load(configuration, data):

@@ -41,4 +41,4 @@ The plugin configuration validator is a class:
 API
 ---
 .. automodule:: pulgas
-   :members: config, attrib, Use, load
+   :members: config, required, override, optional, custom, Use, load
