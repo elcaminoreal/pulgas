@@ -34,7 +34,7 @@ The plugin configuration validator is a class:
     @pulgas.config()
     class SomeClass(object):
 
-        TBD TBD
+        configuration_field = pulgas.
 
 
 

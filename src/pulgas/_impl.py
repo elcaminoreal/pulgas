@@ -96,6 +96,31 @@ def Use(klass):
     return schemalib.Use(klass.validate)
 # pylint: enable=invalid-name
 
+def required(schema, real_name=None):
+    pulgas_schema = _PulgasSchema(schema=schema, optional=False,
+                                  real_name=real_name)
+    return attr.attrib(metadata={PULGAS_SCHEMA: pulgas_schema})
+
+def override(schema, default, real_name=None):
+    pulgas_schema = _PulgasSchema(schema=schema, optional=True,
+                                  real_name=real_name)
+    return attr.attrib(default=default,
+                       metadata={PULGAS_SCHEMA: pulgas_schema})
+
+def optional(schema, real_name=None):
+    underlying_schema = schemalib.Schema(schema)
+
+    def _to_something(value):
+        return _Something(underlying_schema.validate(value))
+    schema = schemalib.Use(_to_something)
+    pulgas_schema = _PulgasSchema(schema=schema, optional=True,
+                                  real_name=real_name)
+    return attr.attrib(default=_Nothing(),
+                       metadata={PULGAS_SCHEMA: pulgas_schema})
+
+def custom(default=attr.NOTHING):
+    return attr.attrib(default=default)
+
 
 def attrib(schema=None, optional=False, default=attr.NOTHING,
            pulgas=None, real_name=None):
@@ -117,23 +142,6 @@ def attrib(schema=None, optional=False, default=attr.NOTHING,
         A marker used by the :code:`config` class decorator to know
         this attribute corresponds to a configuration field.
     """
-    if optional:
-        default = _Nothing()
-    if pulgas is not None:
-        schema = Use(pulgas)
-    if schema is None:
-        return attr.attrib(default=default)
-    if default == _Nothing():
-        underlying_schema = schemalib.Schema(schema)
-
-        def _to_something(value):
-            return _Something(underlying_schema.validate(value))
-        schema = schemalib.Use(_to_something)
-    optional = (default != attr.NOTHING)
-    pulgas_schema = _PulgasSchema(schema=schema, optional=optional,
-                                  real_name=real_name)
-    return attr.attrib(default=default,
-                       metadata={PULGAS_SCHEMA: pulgas_schema})
 
 
 def load(configuration, data):

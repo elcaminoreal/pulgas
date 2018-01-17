@@ -7,7 +7,7 @@ import unittest
 import attr
 import gather
 import schema
-import six
+from six import text_type
 import toml
 
 import pulgas
@@ -28,37 +28,36 @@ class Pipfile(object):
     @pulgas.config()
     class Source(object):
 
-        url = pulgas.attrib(schema=six.text_type)
-        verify_ssl = pulgas.attrib(schema=schema.Optional(bool))
-        name = pulgas.attrib(schema=six.text_type)
+        url = pulgas.required(schema=text_type)
+        name = pulgas.required(schema=text_type)
+        verify_ssl = pulgas.override(schema=bool, default=True)
 
     # Copied from PEP 508, removed "extra"
     @pulgas.config()
     class Requires(object):
 
-        _optional_str = pulgas.attrib(schema=six.text_type, optional=True)
-        os_name = sys_platform = platform_machine = _optional_str
-        platform_python_implementation = sys_platform = _optional_str
-        platform_machine = platform_python_implementation = _optional_str
-        platform_release = platform_system = platform_version = _optional_str
-        python_version = python_full_version = _optional_str
-        implementation_name = implementation_version = _optional_str
-        del _optional_str
+        os_name = sys_platform = platform_machine = pulgas.optional(text_type)
+        platform_python_implementation = pulgas.optional(text_type)
+        platform_machine = platform_version = pulgas.optional(text_type)
+        platform_release = platform_system = pulgas.optional(text_type)
+        python_version = python_full_version = pulgas.optional(text_type)
+        implementation_version = pulgas.optional(text_type)
+        implementation_name = sys_platform = pulgas.optional(text_type)
 
     @pulgas.config()
     class Packages(object):
 
-        packages = pulgas.attrib(default=attr.Factory(dict))
+        packages = pulgas.custom(default=attr.Factory(dict))
 
         @classmethod
         def __pulgas_from_config__(cls, config):
-            spec = schema.Or(six.text_type,  # Should be version str
+            spec = schema.Or(text_type,  # Should be version str
                              pulgas.Use(Pipfile.PackageSpec))
-            my_schema = schema.Schema({six.text_type: spec})
+            my_schema = schema.Schema({text_type: spec})
             validated_config = my_schema.validate(config)
 
             def to_spec(value):
-                if isinstance(value, six.text_type):
+                if isinstance(value, text_type):
                     return Pipfile.PackageSpec(version=value)
                 return value
             packages = {name: to_spec(value)
@@ -68,27 +67,25 @@ class Pipfile(object):
     @pulgas.config()
     class PackageSpec(object):
 
-        extras = pulgas.attrib(schema=[six.text_type],
-                               default=attr.Factory(list))
-        _optional_str = pulgas.attrib(schema=six.text_type, optional=True)
-        git = ref = file = path = index = os_name = markers = _optional_str
-        del _optional_str
-        editable = pulgas.attrib(schema=bool, default=False)
-        version = pulgas.attrib(schema=six.text_type, default='*')
+        extras = pulgas.override(schema=[text_type],
+                                 default=attr.Factory(list))
+        git = ref = file = path = index = pulgas.optional(schema=text_type)
+        os_name = markers = pulgas.optional(schema=text_type)
+        editable = pulgas.override(schema=bool, default=False)
+        version = pulgas.override(schema=text_type, default='*')
 
-    source = pulgas.attrib(schema=[pulgas.Use(Source)],
-                           default=[Source(url=('https://pypi.python.org/'
-                                                'simple'),
-                                           verify_ssl=True,
-                                           name='pypi')])
+    source = pulgas.override(schema=[pulgas.Use(Source)],
+                             default=[Source(url=('https://pypi.python.org/'
+                                                  'simple'),
+                                             verify_ssl=True,
+                                             name='pypi')])
 
-    requires = pulgas.attrib(pulgas=Requires, optional=True)
+    requires = pulgas.optional(schema=pulgas.Use(Requires))
 
-    packages = pulgas.attrib(pulgas=Packages, optional=True)
+    packages = pulgas.optional(schema=pulgas.Use(Packages))
 
-    dev_packages = pulgas.attrib(pulgas=Packages,
-                                 real_name='dev-packages',
-                                 optional=True)
+    dev_packages = pulgas.optional(schema=pulgas.Use(Packages),
+                                   real_name='dev-packages')
 
 
 @pulgas.config()
@@ -97,15 +94,14 @@ class PyProject(object):
     @pulgas.config()
     class BuildSystem(object):
 
-        requires = pulgas.attrib(schema=[six.text_type],
-                                 default=attr.Factory(list))
-        build_backend = pulgas.attrib(schema=six.text_type,
-                                      real_name='build-backend',
-                                      optional=True)
+        requires = pulgas.required(schema=[text_type])
+        build_backend = pulgas.optional(schema=text_type,
+                                        real_name='build-backend')
 
-    build_system = pulgas.attrib(pulgas=BuildSystem, real_name='build-system')
+    build_system = pulgas.optional(schema=pulgas.Use(BuildSystem),
+                                   real_name='build-system')
 
-    tool = pulgas.attrib(schema=object, default=attr.Factory(dict))
+    tool = pulgas.override(schema=object, default=attr.Factory(dict))
 # pylint: enable=missing-docstring
 
 
@@ -128,8 +124,8 @@ class Thing(object):
     It's a thing!
     """
 
-    part_1 = pulgas.attrib(schema=six.text_type)
-    part_2 = pulgas.attrib(schema=int)
+    part_1 = pulgas.required(schema=text_type)
+    part_2 = pulgas.required(schema=int)
 
 
 @CONFIGURATION.register(name='another-thing')
@@ -139,8 +135,8 @@ class AnotherThing(object):
     It's another thing!
     """
 
-    part_1 = pulgas.attrib(schema=float)
-    part_2 = pulgas.attrib(schema=float)
+    part_1 = pulgas.required(schema=float)
+    part_2 = pulgas.required(schema=float)
 
 
 class ClassTest(unittest.TestCase):
@@ -255,8 +251,9 @@ class ClassTest(unittest.TestCase):
         things.pop('tool')
         build_system = things.pop('build_system')
         self.assertEquals(things, {})
-        self.assertIsInstance(build_system, PyProject.BuildSystem)
-        things = attr.asdict(build_system, recurse=False)
+        self.assertTrue(build_system.has_value)
+        self.assertIsInstance(build_system.value, PyProject.BuildSystem)
+        things = attr.asdict(build_system.value, recurse=False)
         self.assertEquals(things.pop('requires'), ['flit'])
         build_backend = things.pop('build_backend')
         self.assertEquals(things, {})
