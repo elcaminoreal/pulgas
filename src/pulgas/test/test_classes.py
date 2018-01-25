@@ -52,7 +52,7 @@ class Pipfile(object):
         @classmethod
         def __pulgas_from_config__(cls, config):
             spec = schema.Or(text_type,  # Should be version str
-                             pulgas.Use(Pipfile.PackageSpec))
+                             pulgas.sub(Pipfile.PackageSpec))
             my_schema = schema.Schema({text_type: spec})
             validated_config = my_schema.validate(config)
 
@@ -74,17 +74,17 @@ class Pipfile(object):
         editable = pulgas.override(schema=bool, default=False)
         version = pulgas.override(schema=text_type, default='*')
 
-    source = pulgas.override(schema=[pulgas.Use(Source)],
+    source = pulgas.override(schema=[pulgas.sub(Source)],
                              default=[Source(url=('https://pypi.python.org/'
                                                   'simple'),
                                              verify_ssl=True,
                                              name='pypi')])
 
-    requires = pulgas.optional(schema=pulgas.Use(Requires))
+    requires = pulgas.optional(schema=pulgas.sub(Requires))
 
-    packages = pulgas.optional(schema=pulgas.Use(Packages))
+    packages = pulgas.optional(schema=pulgas.sub(Packages))
 
-    dev_packages = pulgas.optional(schema=pulgas.Use(Packages),
+    dev_packages = pulgas.optional(schema=pulgas.sub(Packages),
                                    real_name='dev-packages')
 
 
@@ -98,7 +98,7 @@ class PyProject(object):
         build_backend = pulgas.optional(schema=text_type,
                                         real_name='build-backend')
 
-    build_system = pulgas.optional(schema=pulgas.Use(BuildSystem),
+    build_system = pulgas.optional(schema=pulgas.sub(BuildSystem),
                                    real_name='build-system')
 
     tool = pulgas.override(schema=object, default=attr.Factory(dict))

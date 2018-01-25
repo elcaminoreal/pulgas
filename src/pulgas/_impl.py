@@ -88,13 +88,20 @@ class _PulgasSchema(object):
         return schemalib.Optional(name)
 
 
-# pylint: disable=invalid-name
-def Use(klass):
+def sub(klass):
     """
-    Validate using a pulgas configuration specifier.
+    Validate as a pulgas subsection.
+
+    Args:
+        klass (type): pulgas configuration to validate as a subsection
+
+    Returns:
+        a value of type :code:`klass` as read from the configuration
+
+    Raises:
+        schema.SchemaError: invalid configuration data
     """
     return schemalib.Use(klass.validate)
-# pylint: enable=invalid-name
 
 
 def required(schema, real_name=None):
@@ -193,7 +200,7 @@ def load(configuration, data):
     Raises:
         schema.SchemaError: invalid configuration data
     """
-    schema = {schemalib.Optional(name): Use(value)
+    schema = {schemalib.Optional(name): sub(value)
               for name, value in configuration.collect().items()}
     schema[six.text_type] = object
     return schemalib.Schema(schema).validate(data)
