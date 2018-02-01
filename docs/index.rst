@@ -94,6 +94,95 @@ a different class.
 Inner classes are ideal for that,
 since they will seldom be instantiated explicitly.
 
+Example
+-------
+
+We can show case how we would parse `flit_`'s configuration.
+
+The top-level of :code:`flit`'s configuration is made up of three
+subsections.
+We use the :code:`pulgas.sub` to define what is in each subsection.
+
+.. code::
+
+    @pulgas.config()
+    class Flit(object):
+
+         metadata = pulgas.required(schema=pulgas.sub(Metadata))
+         scripts = pulgas.override(schema=pulgas.sub(Scripts),
+                                   default=attr.Factory(Scripts))
+         entrypoints = pulgas.override(pulgas.sub(Entrypoints),
+                                       default=attr.Factory(Entrypoints))
+
+The simplest subsection is the :code:`Metadata`:
+
+.. code::
+
+    from six import text_type
+
+    @pulgas.config()
+    class Metadata(object):
+
+        module = pulgas.required(schema=text_type)
+        author = pulgas.required(schema=text_type)
+        author_email = pulgas.required(schema=text_type,
+                                       real_name='author-email')
+        home_page = pulgas.required(schema=text_type, real_name='home-page')
+
+Note that when the real name is not a valid Python name,
+we can let pulgas knows what the name is in the configuration file.
+
+        requires = pulgas.override(default=attr.Factory(list),
+                                   schema=[str])
+        dev_requires = pulgas.override(default=attr.Factory(list),
+                                       schema=[str],
+                                       real_name='dev-requires')
+
+Note that for the requirements,
+we have chosen to use an :code:`override` field --
+since the empty list is a good way of saying "no requirements".
+
+        description_file = pulgas.optional(schema=str,
+                                           real_name='description-file')
+
+The description file is :code:`optional`.
+This means that the user has to test whether it is there.
+Example usage might be:
+
+.. code::
+
+    if description_file.has_value:
+        with open(description_file.value) as filep:
+            description = filep.read()
+    else:
+            description = ""
+
+Note that we have to explicitly *fetch the value*
+from the configuration field.
+There are some more fields in the :code:`flit` metadata section,
+that we will omit for pedagogical reasons.
+
+The :code:`scripts` section has abitrary keys.
+For this, we will define a custom reader:
+
+.. _code::
+
+    @pulgas.config()
+    class Scripts(object):
+
+        scripts = pulgas.custom(default=attr.Factory(dict))
+
+        @classmethod
+        def __pulgas_from_config__(cls, config):
+            my_schema = schema.Schema({text_type: text_type})
+            validated_config = my_schema.validate(config)
+            return cls(scripts=validated_config)
+
+The entrypoints parser is largely similar,
+and we will omit it.
+
+.. _flit: http://flit.readthedocs.io/en/latest/pyproject_toml.html#metadata-section
+
 Custom parsing
 --------------
 
