@@ -165,7 +165,7 @@ that we will omit for pedagogical reasons.
 The :code:`scripts` section has abitrary keys.
 For this, we will define a custom reader:
 
-.. _code::
+.. code::
 
     @pulgas.config()
     class Scripts(object):
